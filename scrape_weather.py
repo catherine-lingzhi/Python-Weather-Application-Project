@@ -6,16 +6,16 @@ Group 7: Lingzhi Luo and Alem Bade Bene
 """
 from html.parser import HTMLParser
 import urllib.request
+from datetime import datetime
 
 class WeatherScraper(HTMLParser):
     """A class for scraping weather data from a website."""
     def __init__(self):
         """Initialize the WeatherScraper instance."""
-        super().__init__()
+        super().__init__()        
         self.in_tr = False
         self.in_td = False
-        self.in_th = False
-        self.in_a = False
+        self.in_th = False     
         self.td_count = 0
         self.day = None
         self.year = None
@@ -27,15 +27,12 @@ class WeatherScraper(HTMLParser):
         """Handle the start tag of an HTML element."""
         if tag == 'tr':
             self.in_tr = True
-            self.td_count = 0
-            self.daily_temps = {"Day": None, "Max": None, "Min": None, "Mean": None}
+            self.td_count = 0            
         elif self.in_tr and tag == 'td':
             self.in_td = True
         elif self.in_tr and tag == 'th':
             self.in_th = True
-        elif self.in_th and tag == 'a':
-            self.in_a = True
-
+    
     def handle_endtag(self, tag):
         """Handle the end tag of an HTML element."""
         if tag == 'tr':
@@ -52,16 +49,14 @@ class WeatherScraper(HTMLParser):
             self.td_count += 1
         elif tag == 'th':
             self.in_th = False
-        elif tag == 'a':
-            self.in_a = False
+   
 
     def handle_data(self, data):
-        """Handle the data within an HTML element."""
-        if self.in_a:        
-            try:
-                self.day = int(data)
-            except ValueError:
-                self.day = None
+        """Handle the data within an HTML element."""      
+        if self.in_th:        
+            if data.isdigit(): 
+                self.day = int(data) 
+               
         if self.in_td and self.td_count < 3:
             if self.td_count == 0:
                 self.daily_temps["Max"] = self.try_parse_float(data)
@@ -88,8 +83,10 @@ class WeatherScraper(HTMLParser):
 
 def print_weather():
     """Print out the weather data"""
+    # current_year = datetime.now().year
+    # current_month = datetime.now().month    
     myparser = WeatherScraper()
-    myparser.scrape_weather_data(2018, 5)
+    myparser.scrape_weather_data(1996, 8)
     weather = myparser.weather_data
     print(weather)
 
