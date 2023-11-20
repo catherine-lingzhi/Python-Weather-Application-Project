@@ -8,12 +8,15 @@ from dbcm import DBCM
 from scrape_weather import WeatherScraper
 from datetime import datetime
 
-class DBOperations:
+class DBOperations: 
+    """Class for performing operations on a weather data SQLite database."""   
     def __init__(self, db_name):
+        """Initializes the DBOperations instance with the specified database name."""
         self.db_name = db_name
         self.initialize_db()
 
     def initialize_db(self):
+        """Creates the 'weather_data' table if it doesn't exist in the database."""
         with DBCM(self.db_name) as cursor:
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS weather_data (
@@ -27,17 +30,19 @@ class DBOperations:
             ''')
 
     def purge_data(self):
+        """Deletes all data from the 'weather_data' table."""
         with DBCM(self.db_name) as cursor:
             cursor.execute('DELETE FROM weather_data')
 
-    def save_data(self, sample_data):      
+    def save_data(self, sample_data):
+        """ Saves weather data to the 'weather_data' table."""
         with DBCM(self.db_name) as cursor:
             for date, values in sample_data.items():
                 location = "Winipeg"  
                 min_temp = values["Min"]
                 max_temp = values["Max"]
-                avg_temp = values["Mean"]
-           
+                avg_temp = values["Mean"]                       
+
                 existing_data = cursor.execute(
                     'SELECT id FROM weather_data WHERE sample_date = ? AND location = ?',
                     (date, location)
@@ -51,20 +56,52 @@ class DBOperations:
                     )
 
     def fetch_data(self):
+        """Retrieves data from the 'weather_data' table for creating plots"""
         with DBCM(self.db_name) as cursor:
-            cursor.execute('SELECT * FROM weather_data')
-            return cursor.fetchall()
+            cursor.execute('SELECT sample_date, avg_temp FROM weather_data')
+            data_from_db = cursor.fetchall()
+
+        plotter_data = {}
+        for row in data_from_db:
+            date, avg_temp = row  
+
+            try:              
+                dt = datetime.strptime(date, "%Y-%m-%d")
+
+                year = dt.year
+                month = dt.month
+
+                if year not in plotter_data:
+                    plotter_data[year] = {}
+
+                if month not in plotter_data[year]:
+                    plotter_data[year][month] = {}
+
+                day = dt.day
+                plotter_data[year][month][day] = avg_temp
+
+            except ValueError as e:
+                print(f"Error: Unable to parse date {date}. {e}")
+                continue
+
+        return plotter_data
 
 def main():
+    # Save scrapping data to the database    
     current_year = datetime.now().year
     current_month = datetime.now().month 
     myparser = WeatherScraper()
     myparser.scrape_weather_data(current_year, current_month)
     sample_data = myparser.weather_data
 
-    db = DBOperations("weather.sqlite")
+    db = DBOperations("weathers.sqlite")
     db.save_data(sample_data)
-    #db.purge_data()
+
+    # Print out fetch_data output
+    # db = DBOperations("weathers.sqlite")
+    # data = db.fetch_data()
+    # print(data)
 
 if __name__=="__main__":
     main()
+    
