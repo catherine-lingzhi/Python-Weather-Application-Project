@@ -8,7 +8,6 @@ Group 7: Lingzhi Luo and Alem Bade Bene
 
 import matplotlib.pyplot as plt
 from db_operations import DBOperations
-from datetime import datetime
 
 class PlotOperations:
     """Class for creating box plots and line plots based on weather data."""
@@ -22,7 +21,7 @@ class PlotOperations:
 
         for year in range(start_year, end_year + 1):
             for month, days in self.weather_data.get(year, {}).items():
-                for day, avg_temp in days.items():
+                for avg_temp in days.items():
                     if avg_temp is not None:  
                         monthly_means[int(month)].append(avg_temp)
 
@@ -50,11 +49,12 @@ class PlotOperations:
         plt.xlabel(f'Daily of {month}')
         plt.ylabel('Average Daily Temp (°C)')
         plt.title('Daily Avg Temperatures')
-        plt.xticks(rotation=45, ha='right')  
+        plt.xticks(rotation=45, ha='right') 
         plt.grid(True)
         plt.show()
 
 def main():
+    """Create line plot and box plot."""
     db = DBOperations("weathers.sqlite")
     plotter_data = db.fetch_data()
     plotter = PlotOperations(plotter_data)

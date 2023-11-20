@@ -9,7 +9,6 @@ import urllib.request
 from datetime import datetime
 import re
 
-
 class WeatherScraper(HTMLParser):
     """A class for scraping weather data from a website."""
     def __init__(self):
@@ -37,7 +36,7 @@ class WeatherScraper(HTMLParser):
             self.in_td = True
         elif self.in_tr and tag == 'th':
             self.in_th = True
-    
+
     def handle_endtag(self, tag):
         """Handle the end tag of an HTML element."""
         if tag == 'caption':
@@ -56,15 +55,14 @@ class WeatherScraper(HTMLParser):
             self.td_count += 1
         elif tag == 'th':
             self.in_th = False
-   
+
     def handle_data(self, data):
         """Handle the data within an HTML element."""  
-        if self.in_caption: 
-            self.extract_month_and_year(data)          
-        if self.in_th:        
-            if data.isdigit(): 
-                self.day = int(data) 
-               
+        if self.in_caption:
+            self.extract_month_and_year(data)
+        if self.in_th:
+            if data.isdigit():
+                self.day = int(data)      
         if self.in_td and self.td_count < 3:
             if self.td_count == 0:
                 self.daily_temps["Max"] = self.try_parse_float(data)
@@ -80,7 +78,8 @@ class WeatherScraper(HTMLParser):
         except ValueError:
             return None
 
-    def extract_month_and_year(self, input_string):    
+    def extract_month_and_year(self, input_string):
+        """Convert literal month to int."""  
         month_mapping = {
             'January': 1,
             'February': 2,
@@ -100,11 +99,10 @@ class WeatherScraper(HTMLParser):
         if match:
             month_name = match.group(1)
             self.month = int(month_mapping.get(month_name))
-            self.year = int(match.group(2))      
-          
+            self.year = int(match.group(2))
+
     def scrape_weather_data(self, year, month):
         """Scrape weather data for a specific year and month."""      
-        
         while self.year != year or self.month != month:
             url = f"http://climate.weather.gc.ca/climate_data/daily_data_e.html?StationID=27174&timeframe=2&StartYear=1840&EndYear={year}&Day=1&Year={year}&Month={month}#"
             with urllib.request.urlopen(url) as response:
@@ -118,15 +116,14 @@ class WeatherScraper(HTMLParser):
             month -= 1
             if month == 0:
                 month = 12
-                year -= 1
-            
+                year -= 1                         
 def print_weather():
     """Print out the weather data"""
     current_year = datetime.now().year
     current_month = datetime.now().month    
     myparser = WeatherScraper()
     myparser.scrape_weather_data(current_year, current_month)   
-    weather = myparser.weather_data
+    # weather = myparser.weather_data
     # print(weather)
 if __name__ == "__main__":
     print_weather()
