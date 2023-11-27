@@ -86,22 +86,18 @@ class DBOperations:
 
         return plotter_data
 
-def main():
-    # Save scrapping data to the database    
-    current_year = datetime.now().year
-    current_month = datetime.now().month 
-    myparser = WeatherScraper()
-    myparser.scrape_weather_data(current_year, current_month)
-    sample_data = myparser.weather_data
+def save_data():
+    """Fetch all data from the url."""
+    # my_parser = WeatherScraper()   
+    # my_parser.fetch_all_data()
+    # sample_data = my_parser.weather_data
 
-    db = DBOperations("weathers.sqlite")
-    db.save_data(sample_data)
-
-    # Print out fetch_data output
     # db = DBOperations("weathers.sqlite")
-    # data = db.fetch_data()
-    # print(data)
-
+    # db.save_data(sample_data)
+    with DBCM("weathers.sqlite") as cursor:
+                        cursor.execute('SELECT MAX(sample_date) FROM weather_data')
+                        result = cursor.fetchone()
+                        print("Raw result from database:", result)
 if __name__=="__main__":
-    main()
+    save_data()
     

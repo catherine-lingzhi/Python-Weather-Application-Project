@@ -21,7 +21,7 @@ class PlotOperations:
 
         for year in range(start_year, end_year + 1):
             for month, days in self.weather_data.get(year, {}).items():
-                for avg_temp in days.items():
+                for day, avg_temp in days.items():
                     if avg_temp is not None:  
                         monthly_means[int(month)].append(avg_temp)
 
