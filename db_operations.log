@@ -1,0 +1,2 @@
+2023-12-03 16:23:50,375 - ERROR - Error saving data to database: UNIQUE constraint failed: weather_data.sample_date
+2023-12-03 19:17:18,252 - ERROR - Error saving data to database: UNIQUE constraint failed: weather_data.sample_date

@@ -1,23 +1,33 @@
 """
 Description: Final Project Part 2 -Database
 Date: 2023-11-26
-Usage: Allow the user to download the weather data and enter the 
+Usage: Allow the user to download the weather data and enter the
 year month to generate box plot and line plot.
 Group 7: Lingzhi Luo and Alem Bade Bene
 """
+import logging
+from datetime import datetime
+import sys
 from db_operations import DBOperations
 from plot_operations import PlotOperations
 from scrape_weather import WeatherScraper
-from datetime import datetime
 from dbcm import DBCM
-from datetime import timedelta
+
+logging.basicConfig(filename='weather_processor.log', level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class WeatherProcessor:
+    """
+    This class processes weather data and provides various functionalities.
+    """
     def __init__(self, db_name="weathers.sqlite"):
-        self.db_name = db_name
-        self.db_operations = DBOperations(db_name)
-        self.plot_operations = PlotOperations(self.db_operations.fetch_data())
-        self.weather_scraper = WeatherScraper()
+        try:
+            self.db_name = db_name
+            self.db_operations = DBOperations(db_name)
+            self.plot_operations = PlotOperations(self.db_operations.fetch_data())
+            self.weather_scraper = WeatherScraper()
+        except Exception as e:
+            logging.error(f"Error initializing WeatherProcessor: {e}")
+            sys.exit(1)
 
     def show_menu(self):
         """Displays the main menu."""
@@ -39,18 +49,18 @@ class WeatherProcessor:
                 # Fetch the latest date directly from the database
                 with DBCM(self.db_name) as cursor:
                     cursor.execute('SELECT MAX(date(sample_date)) FROM weather_data')
-                    result = cursor.fetchone()                    
+                    result = cursor.fetchone()
 
-                latest_date_str = result[0]             
+                latest_date_str = result[0]
                 latest_date = datetime.strptime(latest_date_str, "%Y-%m-%d").date()
-                current_date = datetime.now().date()               
+                current_date = datetime.now().date()
 
                 if latest_date <= current_date:
                     self.weather_scraper.fetch_update_data(latest_date.year, latest_date.month)
                     new_data = self.weather_scraper.weather_data
                     self.db_operations.save_data(new_data)
-                    print(f"Weather data updated from {latest_date} to latest date on website")             
-             
+                    print(f"Weather data updated from {latest_date} to latest date on the website")
+
             elif choice == 3:
                 start_year = int(input("Enter the starting year: "))
                 end_year = int(input("Enter the ending year: "))
@@ -61,11 +71,15 @@ class WeatherProcessor:
                 self.plot_operations.create_lineplot(year, month)
             elif choice == 5:
                 print("Exiting the program.")
-                exit()
+                sys.exit()
             else:
                 print("Invalid choice. Please choose a number from 1 to 5.")
-        except ValueError:
-            print("Invalid input. Please enter a valid number.")
+        except ValueError as ve:
+            logging.error(f"Invalid input: {ve}")
+            print(f"Invalid input: {ve}")
+        except Exception as e:
+            logging.error(f"An error occurred: {e}")
+            print(f"An error occurred: {e}")
 
     def run(self):
         """Runs the WeatherProcessor."""
@@ -75,6 +89,7 @@ class WeatherProcessor:
                 choice = int(input("Enter your choice: "))
                 self.process_choice(choice)
             except ValueError:
+                logging.error("Invalid input. Please enter a valid number.")
                 print("Invalid input. Please enter a valid number.")
 
 if __name__ == "__main__":

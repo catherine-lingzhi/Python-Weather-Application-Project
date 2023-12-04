@@ -23,9 +23,9 @@ class DBCM:
     def __exit__(self, exc_type, exc_value, traceback):
         """Exits the context and commits the transaction if no exceptions occurred."""
         if exc_type is not None:
-            self.conn.rollback() 
+            self.conn.rollback()
         else:
-            self.conn.commit()  
+            self.conn.commit()
 
         self.cursor.close()
         self.conn.close()
